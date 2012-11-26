@@ -1,22 +1,17 @@
 {% extends "admin/base_site.html" %}
-{% load i18n admin_modify adminmedia %}
-
-{% block extrahead %}{{ block.super }}
-{{ media }}
-{% endblock %}
+{% load i18n adminmedia %}
 
 {% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% admin_media_prefix %}css/forms.css" />{% endblock %}
 
-
 {% block coltype %}colMS{% endblock %}
-{% block bodyclass %}dashboard{% endblock %}
-{% block userlinks %}<a href="/admin/doc/">{% trans 'Documentation' %}</a> / <a href="/admin/password_change/">{% trans 'Change password' %}</a> / <a href="/admin/logout/">{% trans 'Log out' %}</a>{% endblock %}
+{% block bodyclass %}dbsettings{% endblock %}
 {% block breadcrumbs %}{% if not is_popup %}
 <div class="breadcrumbs">
-     <a href="/admin/">{% trans "Home" %}</a> &rsaquo;
-     {% trans "Edit Settings" %}
+    <a href="{% url admin:index %}">{% trans "Home" %}</a> &rsaquo;
+    {% trans "Edit Settings" %}
 </div>
 {% endif %}{% endblock %}
+
 {% block content %}
 <div id="content-main">
 {% if form.errors %}
@@ -26,30 +21,15 @@
 {% endif %}
 {% if form.fields %}
 {% regroup form by class_name as classes %}
-<form method="post">
-	{% for class in classes %}
-		<div class="module">
+<form enctype="multipart/form-data" method="post">
+    {% for class in classes %}
+        <div class="module">
         <table summary="{% filter capfirst %}{% blocktrans with class.grouper as name %}Settings included in the {{ name }} class.{% endblocktrans %}{% endfilter %}" width="100%">
-			<caption>{% filter capfirst %}{% if class.grouper %}{% blocktrans with class.grouper as name %}{{ name }}{% endblocktrans %}{% else %}Application settings{% endif %}{% endfilter %}</caption>
-			{% for field in class.list %}
-				{% if field.errors %}
-				<tr class="error">
-					<td colspan="2">{{ field.errors }}</td>
-				</tr>
-				{% endif %}
-				<tr{% if field.errors %} class="error"{% endif %}>
-					<td>
-						{{ field.label_tag }}
-						{% if field.help_text %}
-							<p class="help">{{ field.help_text|escape }}</p>
-						{% endif %}
-					</td>
-					<td>{{ field }}</td>
-				</tr>
-			{% endfor %}
-			</table>
-		</div>
-	{% endfor %}
+            <caption>{% filter capfirst %}{% if class.grouper %}{{ class.grouper }}{% else %}{% trans "Application settings" %}{% endif %}{% endfilter %}</caption>
+            {% include "dbsettings/values.html" %}
+            </table>
+        </div>
+    {% endfor %}
 {% csrf_token %}<input type="submit" value="Save" class="default" />
 </form>
 {% else %}

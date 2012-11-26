@@ -119,6 +119,12 @@ lower-case, as it will be capitalized as necessary, automatically.
         sender = dbsettings.StringValue('address to send emails from')
         subject = dbsettings.StringValue()
 
+For more descriptive explanation, the ``help_text`` argument can be used. It
+will be shown in the editor.
+
+The ``default`` argument is very useful - it specify an initial value of the
+setting.
+
 In addition, settings may be supplied with a list of available options, through
 the use of of the ``choices`` argument. This works exactly like the ``choices``
 argument for model fields, and that of the newforms ``ChoiceField``.
@@ -134,6 +140,9 @@ location where they will be referenced later. This is as simple as instantiating
 the settings group in the appropriate location. This may be at the module level
 or within any standard Django model.
 
+Group instance may receive one optional argument: verbose name of the group.
+This name will be displayed in the editor.
+
 ::
 
     email = EmailOptions()
@@ -142,12 +151,16 @@ or within any standard Django model.
         image = models.ImageField(upload_to='/upload/path')
         caption = models.TextField()
 
-        limits = ImageLimits()
+        limits = ImageLimits('Dimension settings')
 
 Multiple groups may be assigned to the same module or model, and they can even
 be combined into a single group by using standard addition syntax::
 
     options = EmailOptions() + ImageLimits()
+
+To separate and tag settings nicely in the editor, use verbose names::
+
+    options = EmailOptions('Email') + ImageLimits('Dimesions')
 
 Database setup
 --------------
@@ -170,12 +183,18 @@ settings.
 Editing settings
 ----------------
 
-When first defined, your settings will default to ``None`` (or ``False``), so
-their values must be set using one of the supplied editors before they can be
-considered useful. The editor will be available at the URL configured earlier.
+When first defined, your settings will default to ``None`` (or ``False`` in
+the case of ``BooleanValue``), so their values must be set using one of the
+supplied editors before they can be considered useful (however, if the setting
+had the ``default`` argument passed in the constructor, its value is already
+useful - equal to the defined default).
+
+The editor will be available at the URL configured earlier.
 For example, if you used the prefix of ``'settings/'``, the URL ``/settings/``
 will provide an editor of all available settings, while ``/settings/myapp/``
 would contain a list of just the settings for ``myapp``.
+
+URL patterns are named: 'site_settings' and 'app_settings', respectively.
 
 The editors are restricted to staff members, and the particular settings that
 will be available to users is based on permissions that are set for them. This
@@ -191,8 +210,9 @@ location where it was assigned, and the individual values are attributes of the
 group.
 
 If any settings are referenced without being set to a particular value, they
-will default to ``None`` (or ``False`` in the case of ``BooleanValue``). In the
-following example, assume that ``EmailOptions``were added to the project after
+will default to ``None`` (or ``False`` in the case of ``BooleanValue``, or
+whatever was passed as ``default``). In the
+following example, assume that ``EmailOptions`` were added to the project after
 the ``ImageLimits`` were already defined.
 
 ::
@@ -302,6 +322,37 @@ StringValue
 Presents a standard input, accepting any text string up to 255 characters. In
 Python, the value is accessed as a standard string.
 
+DateTimeValue
+-------------
+
+Presents a standard input field, which becomes a ``datetime`` in Python.
+
+User input will be parsed according to ``DATETIME_INPUT_FORMATS`` setting.
+
+In code, one can assign to field string or datetime object::
+
+    # These two statements has the same effect
+    myapp.Feed.next_feed = '2012-06-01 00:00:00'
+    myapp.Feed.next_feed = datetime.datetime(2012, 6, 1, 0, 0, 0)
+
+DateValue
+---------
+
+Presents a standard input field, which becomes a ``date`` in Python.
+
+User input will be parsed according to ``DATE_INPUT_FORMATS`` setting.
+
+See ``DateTimeValue`` for the remark about assigning.
+
+TimeValue
+---------
+
+Presents a standard input field, which becomes a ``time`` in Python.
+
+User input will be parsed according to ``TIME_INPUT_FORMATS`` setting.
+
+See ``DateTimeValue`` for the remark about assigning.
+
 Setting defaults for a distributed application
 ==============================================
 
@@ -337,3 +388,27 @@ some of the settings provided earlier in this document::
         ('Image', 'maximum_width', 800)
         ('Image', 'maximum_height', 600)
     )
+
+----------
+
+Changelog
+=========
+
+**0.5** (11/10/2012)
+    - Fixed error occuring when test are run with ``LANGUAGE_CODE`` different than 'en'
+    - Added verbose_name option for Groups
+    - Cleaned code
+**0.4.1** (02/10/2012)
+    - Fixed Image import
+**0.4** (30/09/2012)
+    - Named urls
+    - Added polish translation
+**0.3** (04/09/2012)
+    Included testrunner in distribution
+**0.2** (05/07/2012)
+    - Fixed errors appearing when module-level and model-level settings have
+      same attribute names
+    - Corrected the editor templates admin integration
+    - Updated README
+**0.1** (29/06/2012)
+    Initial PyPI release
